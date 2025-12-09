@@ -497,7 +497,7 @@ class GraphArea(QWidget):
         projection = a + ab * t
         dx = projection.x() - p.x()
         dy = projection.y() - p.y()
-        return hypot(dx, dy) <= tolerance # Tương đương sqrt(dx**2 + dy**2)
+        return hypot(dx, dy) <= tolerance
 
     def is_point_near_curve(self, point, start, end, control, tolerance=10):
         for t in [i/20.0 for i in range(21)]:
@@ -592,10 +592,3 @@ class GraphArea(QWidget):
                 self.selection_end.toPoint() if isinstance(self.selection_end, QPointF) else self.selection_end
             ).normalized()
             painter.drawRect(selection_rect)
-
-        if self.dragging_control_point and self.selected_control_point:
-            control_point = self.graph.get_control_point(self.selected_control_point)
-            # if control_point:
-                # painter.setPen(QPen(Qt.red, 2))
-                # painter.setBrush(QBrush(Qt.red))
-                # painter.drawEllipse(control_point, self.control_point_radius, self.control_point_radius)

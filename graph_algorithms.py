@@ -3,7 +3,6 @@ import itertools
 from graph import connected_components
 
 def check_dirac_condition(graph):
-    """Kiểm tra điều kiện đủ cho chu trình Hamilton dựa trên định lý Dirac"""
     vertices = [v[0] for v in graph.vertices]
     n = len(vertices)
     if n < 3:
@@ -20,7 +19,6 @@ def check_dirac_condition(graph):
     return True, "Thỏa định lý Dirac (mọi đỉnh có bậc >= n/2)"
 
 def check_ore_condition(graph):
-    """Kiểm tra điều kiện đủ cho chu trình Hamilton dựa trên định lý Ore"""
     vertices = [v[0] for v in graph.vertices]
     n = len(vertices)
     if n < 3:
@@ -42,7 +40,6 @@ def check_ore_condition(graph):
     return True, "Thỏa định lý Ore (mọi cặp không kề có tổng bậc >= n)"
 
 def hamiltonian_cycle_with_steps(graph, start_vertex=None):
-    """Tìm chu trình Hamilton với chi tiết các bước, bắt đầu từ đỉnh được chỉ định"""
     vertices = [v[0] for v in graph.vertices]
     if len(vertices) == 0:
         return {
@@ -65,7 +62,6 @@ def hamiltonian_cycle_with_steps(graph, start_vertex=None):
         adjacency[u].add(v)
         adjacency[v].add(u)
 
-    # Kiểm tra đồ thị liên thông
     if connected_components(graph)[0] > 1:
         return {
             'success': False,
@@ -74,27 +70,12 @@ def hamiltonian_cycle_with_steps(graph, start_vertex=None):
             'total_steps': 1
         }
     
-    # Kiểm tra điều kiện cần thiết (đỉnh cô lập)
-    # isolated_vertices = [v for v in vertices if len(adjacency[v]) == 0]
-    # if isolated_vertices:
-    #     return {
-    #         'success': False,
-    #         'path': None,
-    #         'steps': [
-    #             {'step': 1, 'path': [], 'action': f'Có đỉnh cô lập: {", ".join(isolated_vertices)}'},
-    #             {'step': 2, 'path': [], 'action': 'Không thể tạo chu trình Hamilton với đỉnh cô lập'}
-    #         ],
-    #         'total_steps': 2
-    #     }
-
-    # Nếu không có đỉnh bắt đầu được chỉ định, chọn đỉnh đầu tiên
     start_vertex = start_vertex if start_vertex in vertices else vertices[0]
     path = [start_vertex]
     steps = []
     step_count = 0
 
 
-    # Kiểm tra định lý Dirac và Ore
     dirac_valid, dirac_msg = check_dirac_condition(graph)
     step_count += 1
     steps.append({
@@ -125,7 +106,6 @@ def hamiltonian_cycle_with_steps(graph, start_vertex=None):
             'path': [],
             'action': 'Không thỏa các định lý đủ Dirac hoặc Ore, nhưng chu trình có thể vẫn tồn tại. Thử tìm bằng thuật toán.'
         })
-     # Bước khởi tạo
     step_count += 1
     steps.append({
         'step': step_count,
@@ -162,7 +142,6 @@ def hamiltonian_cycle_with_steps(graph, start_vertex=None):
                 })
                 return False
         
-        # Thử các đỉnh kề
         current_vertex = path[-1]
         neighbors = [v for v in vertices if v not in path and v in adjacency[current_vertex]]
         
@@ -194,7 +173,6 @@ def hamiltonian_cycle_with_steps(graph, start_vertex=None):
             if backtrack(pos + 1):
                 return True
             
-            # Backtrack
             path.pop()
             step_count += 1
             steps.append({
@@ -225,7 +203,6 @@ def hamiltonian_cycle_with_steps(graph, start_vertex=None):
     }
 
 def hamiltonian_cycle_branch_and_bound(graph, start_vertex=None):
-    """Tìm chu trình Hamilton bằng Branch and Bound với chi tiết các bước"""
     vertices = [v[0] for v in graph.vertices]
     if len(vertices) == 0:
         return {
@@ -248,7 +225,6 @@ def hamiltonian_cycle_branch_and_bound(graph, start_vertex=None):
         adjacency[u].add(v)
         adjacency[v].add(u)
 
-    # Kiểm tra đồ thị liên thông
     if connected_components(graph)[0] > 1:
         return {
             'success': False,
@@ -257,28 +233,11 @@ def hamiltonian_cycle_branch_and_bound(graph, start_vertex=None):
             'total_steps': 1
         }
     
-    # Kiểm tra điều kiện cần thiết (đỉnh cô lập)
-    # isolated_vertices = [v for v in vertices if len(adjacency[v]) == 0]
-    # if isolated_vertices:
-    #     return {
-    #         'success': False,
-    #         'path': None,
-    #         'steps': [
-    #             {'step': 1, 'path': [], 'action': f'Có đỉnh cô lập: {", ".join(isolated_vertices)}'},
-    #             {'step': 2, 'path': [], 'action': 'Không thể tạo chu trình Hamilton với đỉnh cô lập'}
-    #         ],
-    #         'total_steps': 2
-    #     }
 
-    # Nếu không có đỉnh bắt đầu được chỉ định, chọn đỉnh đầu tiên
     start_vertex = start_vertex if start_vertex in vertices else vertices[0]
     path = [start_vertex]
     steps = []
     step_count = 0
-
-
-
-    # Kiểm tra định lý Dirac và Ore
     dirac_valid, dirac_msg = check_dirac_condition(graph)
     step_count += 1
     steps.append({
@@ -310,7 +269,6 @@ def hamiltonian_cycle_branch_and_bound(graph, start_vertex=None):
             'action': 'Không thỏa các định lý đủ Dirac hoặc Ore, nhưng chu trình có thể vẫn tồn tại. Thử tìm bằng thuật toán.'
         })
 
-    # Bước khởi tạo
     step_count += 1
     steps.append({
         'step': step_count,
@@ -319,18 +277,14 @@ def hamiltonian_cycle_branch_and_bound(graph, start_vertex=None):
     })
 
     def is_promising(path, current_vertex):
-        """Kiểm tra xem việc thêm đỉnh current_vertex có tiềm năng dẫn đến lời giải"""
-        # Nếu không có cạnh từ đỉnh hiện tại đến các đỉnh chưa thăm
         neighbors = [v for v in vertices if v not in path and v in adjacency[current_vertex]]
         if not neighbors and len(path) < len(vertices):
             return False, f"Không có đỉnh kề khả dụng từ {current_vertex}"
         
-        # Nếu đã thăm đủ đỉnh, kiểm tra cạnh quay về đỉnh đầu
         if len(path) == len(vertices):
             if path[0] not in adjacency[current_vertex]:
                 return False, f"Không có cạnh từ {current_vertex} về {path[0]}"
         
-        # Kiểm tra tính liên thông của các đỉnh chưa thăm
         remaining_vertices = [v for v in vertices if v not in path]
         if remaining_vertices:
             temp_graph = {v: set(adjacency[v]) for v in remaining_vertices}
@@ -342,7 +296,6 @@ def hamiltonian_cycle_branch_and_bound(graph, start_vertex=None):
         return True, ""
 
     def connected_components_temp(temp_graph, vertices):
-        """Tính số miền liên thông trong tập đỉnh chưa thăm"""
         visited = set()
         count = 0
 
@@ -420,7 +373,6 @@ def hamiltonian_cycle_branch_and_bound(graph, start_vertex=None):
                 if branch_and_bound(pos + 1):
                     return True
                 
-                # Backtrack
                 path.pop()
                 step_count += 1
                 steps.append({
@@ -459,7 +411,6 @@ def hamiltonian_cycle_branch_and_bound(graph, start_vertex=None):
     }
 
 def hamiltonian_cycle_brute_force(graph, start_vertex=None):
-    """Tìm chu trình Hamilton bằng Brute Force (hoán vị) với chi tiết các bước"""
     vertices = [v[0] for v in graph.vertices]
     if len(vertices) == 0:  
         return {
@@ -482,7 +433,6 @@ def hamiltonian_cycle_brute_force(graph, start_vertex=None):
         adjacency[u].add(v)
         adjacency[v].add(u)
 
-    # Kiểm tra đồ thị liên thông
     if connected_components(graph)[0] > 1:
         return {
             'success': False,
@@ -491,27 +441,13 @@ def hamiltonian_cycle_brute_force(graph, start_vertex=None):
             'total_steps': 1
         }
     
-    # Kiểm tra điều kiện cần thiết (đỉnh cô lập)
-    # isolated_vertices = [v for v in vertices if len(adjacency[v]) == 0]
-    # if isolated_vertices:
-    #     return {
-    #         'success': False,
-    #         'path': None,
-    #         'steps': [
-    #             {'step': 1, 'path': [], 'action': f'Có đỉnh cô lập: {", ".join(isolated_vertices)}'},
-    #             {'step': 2, 'path': [], 'action': 'Không thể tạo chu trình Hamilton với đỉnh cô lập'}
-    #         ],
-    #         'total_steps': 2
-    #     }
 
-    # Nếu không có đỉnh bắt đầu được chỉ định, chọn đỉnh đầu tiên
     start_vertex = start_vertex if start_vertex in vertices else vertices[0]
     steps = []
     step_count = 0
 
     
 
-    # Kiểm tra định lý Dirac và Ore
     dirac_valid, dirac_msg = check_dirac_condition(graph)
     step_count += 1
     steps.append({
@@ -549,7 +485,6 @@ def hamiltonian_cycle_brute_force(graph, start_vertex=None):
         'path': [start_vertex],
         'action': f"Khởi tạo (Brute Force): Bắt đầu từ đỉnh {start_vertex}"
     })
-    # Tạo tất cả hoán vị của các đỉnh còn lại
     remaining_vertices = [v for v in vertices if v != start_vertex]
     permutations = list(itertools.permutations(remaining_vertices))
 
@@ -560,7 +495,6 @@ def hamiltonian_cycle_brute_force(graph, start_vertex=None):
         'action': f"Tạo tất cả hoán vị của các đỉnh còn lại: {', '.join(remaining_vertices)}"
     })
 
-    # Kiểm tra từng hoán vị
     for perm in permutations:
         path = [start_vertex] + list(perm)
         step_count += 1
@@ -571,7 +505,6 @@ def hamiltonian_cycle_brute_force(graph, start_vertex=None):
         })
 
         is_valid = True
-        # Kiểm tra các cạnh liên tiếp
         for i in range(len(path) - 1):
             if path[i+1] not in adjacency[path[i]]:
                 is_valid = False
@@ -584,7 +517,6 @@ def hamiltonian_cycle_brute_force(graph, start_vertex=None):
                 break
         
         if is_valid:
-            # Kiểm tra cạnh từ đỉnh cuối về đỉnh đầu
             if path[0] in adjacency[path[-1]]:
                 step_count += 1
                 final_path = path + [path[0]]
@@ -607,7 +539,6 @@ def hamiltonian_cycle_brute_force(graph, start_vertex=None):
                     'action': f"Hoán vị không hợp lệ: Không có cạnh từ {path[-1]} về {path[0]}"
                 })
 
-    # Nếu không tìm thấy chu trình Hamilton
     step_count += 1
     steps.append({
         'step': step_count,

@@ -9,7 +9,6 @@ class Graph:
     def __init__(self):
         self.vertices = []
         self.edges = []
-        # Thêm dictionary để lưu điểm điều khiển cho cạnh cong
         self.edge_control_points = {}
 
     def add_vertex(self, vertex):
@@ -21,31 +20,25 @@ class Graph:
         name1, name2 = edge
         if edge not in self.edges and (name2, name1) not in self.edges:
             self.edges.append(edge)
-            # Tạo điểm điều khiển mặc định cho cạnh mới
             self.create_default_control_point(edge)
 
     def create_default_control_point(self, edge):
-        """Tạo điểm điều khiển mặc định cho cạnh"""
         name1, name2 = edge
         pos1 = next((pos for n, pos in self.vertices if n == name1), None)
         pos2 = next((pos for n, pos in self.vertices if n == name2), None)
         
         if pos1 and pos2:
-            # Điểm điều khiển ở giữa cạnh, lệch lên trên một chút
             mid_x = (pos1.x() + pos2.x()) / 2
             mid_y = (pos1.y() + pos2.y()) / 2 - 30
             control_point = QPointF(mid_x, mid_y)
             
-            # Lưu cho cả hai hướng của cạnh
             self.edge_control_points[edge] = control_point
             self.edge_control_points[(name2, name1)] = control_point
 
     def get_control_point(self, edge):
-        """Lấy điểm điều khiển của cạnh"""
         return self.edge_control_points.get(edge, None)
 
     def set_control_point(self, edge, point):
-        """Đặt điểm điều khiển cho cạnh"""
         name1, name2 = edge
         self.edge_control_points[edge] = point
         self.edge_control_points[(name2, name1)] = point
@@ -53,19 +46,16 @@ class Graph:
     def remove_vertex(self, vertex):
         name, _ = vertex
         self.vertices = [v for v in self.vertices if v[0] != name]
-        # Xóa các cạnh và điểm điều khiển liên quan
         edges_to_remove = [e for e in self.edges if name in e]
         for edge in edges_to_remove:
             self.edges.remove(edge)
             self.edge_control_points.pop(edge, None)
-            # Xóa cả hướng ngược lại
             reverse_edge = (edge[1], edge[0])
             self.edge_control_points.pop(reverse_edge, None)
 
     def remove_edge(self, edge):
         if edge in self.edges:
             self.edges.remove(edge)
-            # Xóa điểm điều khiển
             self.edge_control_points.pop(edge, None)
             self.edge_control_points.pop((edge[1], edge[0]), None)
 
@@ -89,19 +79,6 @@ def connected_components(graph):
         component.append(u)
         for v in adjacency[u]:
             if v not in visited:
-                dfs(v, component)
-
-    for v in vertices:
-        if v not in visited:
-            component = []
-            dfs(v, component)
-            # components.append(sorted(component))  # Sắp xếp để dễ đọc
-            components.append(component)
-
-    return len(components), components
-
-
-def generate_random_graph(graph, num_vertices=None, edge_probability=0.4, width=600, height=500):
     if num_vertices is None:
         num_vertices = random.randint(3, 6)
     graph.clear()
@@ -124,7 +101,6 @@ def generate_random_graph(graph, num_vertices=None, edge_probability=0.4, width=
 
 
 def format_graph_circular(graph, width=600, height=500):
-    """Sắp xếp đồ thị theo hình tròn"""
     if not graph.vertices:
         return
     
@@ -138,7 +114,6 @@ def format_graph_circular(graph, width=600, height=500):
         y = center_y + int(radius * math.sin(angle))
         graph.vertices[i] = (name, QPoint(x, y))
     
-    # Reset control points for all edges
     for edge in graph.edges:
         graph.create_default_control_point(edge)
 
@@ -182,7 +157,6 @@ def import_file(graph, file_path):
         if len(edge) == 2:
             graph.add_edge(tuple(edge))
     
-    # Import điểm điều khiển
     control_points = data.get("control_points", {})
     for edge_key, point_data in control_points.items():
         if "-" in edge_key:
@@ -191,6 +165,9 @@ def import_file(graph, file_path):
                 edge = (parts[0], parts[1])
                 control_point = QPointF(point_data["x"], point_data["y"])
                 graph.set_control_point(edge, control_point)
+
+
+
 
 
 
