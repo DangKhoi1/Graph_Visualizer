@@ -79,6 +79,18 @@ def connected_components(graph):
         component.append(u)
         for v in adjacency[u]:
             if v not in visited:
+                dfs(v, component)
+
+    for v in vertices:
+        if v not in visited:
+            component = []
+            dfs(v, component)
+            components.append(component)
+
+    return len(components), components
+
+
+def generate_random_graph(graph, width=600, height=500, num_vertices=None, edge_probability=0.5):
     if num_vertices is None:
         num_vertices = random.randint(3, 6)
     graph.clear()
