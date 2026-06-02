@@ -232,8 +232,8 @@ class GraphArea(QWidget):
     def find_control_point_at_pos(self, pos):
         for edge in self.graph.edges:
             name1, name2 = edge
-            pos1 = next((pos for n, pos in self.graph.vertices if n == name1), None)
-            pos2 = next((pos for n, pos in self.graph.vertices if n == name2), None)
+            pos1 = next((p for n, p in self.graph.vertices if n == name1), None)
+            pos2 = next((p for n, p in self.graph.vertices if n == name2), None)
             if not pos1 or not pos2 or name1 == name2:
                 continue
             control_point = self.graph.get_control_point(edge)
@@ -356,7 +356,7 @@ class GraphArea(QWidget):
             dy = event.pos().y() - self.last_mouse_pos.y()
             for i, (name, pos) in enumerate(self.graph.vertices):
                 if name in self.area_selected_vertices:
-                    self.graph.vertices[i] = (name, QPointF(pos.x() +   dx, pos.y() + dy))
+                    self.graph.vertices[i] = (name, QPointF(int(pos.x() + dx), int(pos.y() + dy)))
             self.update_all_related_control_points()
             self.last_mouse_pos = event.pos()
             updated = True

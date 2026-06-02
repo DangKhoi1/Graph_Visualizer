@@ -6,7 +6,8 @@ from PyQt5.QtCore import Qt
 from graph_area import GraphArea
 from graph import Graph
 from graph import generate_random_graph, export_file, import_file, format_graph_circular
-from graph_algorithms import hamiltonian_cycle_with_steps, hamiltonian_cycle_branch_and_bound, hamiltonian_cycle_brute_force, connected_components, check_dirac_condition, check_ore_condition
+from graph_algorithms import hamiltonian_cycle_with_steps, hamiltonian_cycle_branch_and_bound, hamiltonian_cycle_brute_force, check_dirac_condition, check_ore_condition
+from graph import connected_components
 from PyQt5.QtGui import QIcon
 import pathlib
 import random
@@ -15,7 +16,7 @@ class GraphGUI(QWidget):
     def __init__(self):
         super().__init__()
 
-        css_path = pathlib.Path("style.css")
+        css_path = pathlib.Path(__file__).parent / "style.css"
         try:
             self.setStyleSheet(css_path.read_text(encoding="utf-8"))
         except:
@@ -32,7 +33,8 @@ class GraphGUI(QWidget):
         outer_layout.addWidget(heading)
         heading.setObjectName("heading")
         try:
-            self.setWindowIcon(QIcon("4fe7b638f74885de07d05000191aad3d_t.jpeg"))
+            icon_path = str(pathlib.Path(__file__).parent / "4fe7b638f74885de07d05000191aad3d_t.jpeg")
+            self.setWindowIcon(QIcon(icon_path))
         except:
             pass
 
@@ -248,13 +250,13 @@ class GraphGUI(QWidget):
 
     def check_condition_graph(self):
         
+        if not self.graph.vertices:
+            self.result_output.setPlainText("Không có đồ thị để kiểm tra.")
+            return
         if connected_components(self.graph)[0] > 1:
             self.result_output.setPlainText( 
             "Đồ thị không liên thông nên không thể có chu trình Hamilton.\n"
             "Vì vậy không cần kiểm các định lý đủ Dirac/Ore (chúng chắc chắn không thỏa).")
-            return
-        if not self.graph.vertices:
-            self.result_output.setPlainText("Không có đồ thị để kiểm tra.")
             return
         
         check1 = check_dirac_condition(self.graph)
