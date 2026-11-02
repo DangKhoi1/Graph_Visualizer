@@ -1,8 +1,6 @@
-"""Application entry point."""
 import sys
 from pathlib import Path
 
-# IDEs often execute this file directly instead of running the package.
 if not __package__:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
     __package__ = "graph_visualizer"
