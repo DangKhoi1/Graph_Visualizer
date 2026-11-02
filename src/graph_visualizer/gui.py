@@ -3,11 +3,11 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
-from graph_area import GraphArea
-from graph import Graph
-from graph import generate_random_graph, export_file, import_file, format_graph_circular
-from graph_algorithms import hamiltonian_cycle_with_steps, hamiltonian_cycle_branch_and_bound, hamiltonian_cycle_brute_force, check_dirac_condition, check_ore_condition
-from graph import connected_components
+from .graph_area import GraphArea
+from .graph import Graph
+from .graph import generate_random_graph, export_file, import_file, format_graph_circular
+from .graph_algorithms import hamiltonian_cycle_with_steps, hamiltonian_cycle_branch_and_bound, hamiltonian_cycle_brute_force, check_dirac_condition, check_ore_condition
+from .graph import connected_components
 from PyQt5.QtGui import QIcon
 import pathlib
 import random
@@ -16,10 +16,10 @@ class GraphGUI(QWidget):
     def __init__(self):
         super().__init__()
 
-        css_path = pathlib.Path(__file__).parent / "style.css"
+        css_path = pathlib.Path(__file__).parent / "assets" / "style.qss"
         try:
             self.setStyleSheet(css_path.read_text(encoding="utf-8"))
-        except:
+        except OSError:
             pass
             
         self.graph = Graph()
@@ -33,9 +33,9 @@ class GraphGUI(QWidget):
         outer_layout.addWidget(heading)
         heading.setObjectName("heading")
         try:
-            icon_path = str(pathlib.Path(__file__).parent / "4fe7b638f74885de07d05000191aad3d_t.jpeg")
+            icon_path = str(pathlib.Path(__file__).parent / "assets" / "icon.jpeg")
             self.setWindowIcon(QIcon(icon_path))
-        except:
+        except OSError:
             pass
 
         main_layout = QHBoxLayout()
@@ -330,7 +330,11 @@ class GraphGUI(QWidget):
     def run_exportfile(self):
         file_path, _ = QFileDialog.getSaveFileName(self, "Lưu đồ thị", "", "JSON Files (*.json);;All Files (*)")
         if file_path:
-            export_file(self.graph, file_path)
+            try:
+                export_file(self.graph, file_path)
+            except (OSError, ValueError) as exc:
+                QMessageBox.critical(self, "Error", str(exc))
+                return
             QMessageBox.information(self, "Thành công", "Lưu đồ thị thành công!")
     
     def run_importfile(self):
@@ -467,5 +471,7 @@ class GraphGUI(QWidget):
                 image_format = "JPEG"
             else:
                 image_format = "PNG"
-            self.graph_area.grab().save(file_path, image_format)
+            if not self.graph_area.grab().save(file_path, image_format):
+                QMessageBox.critical(self, "Error", "Cannot save image to the selected path.")
+                return
             QMessageBox.information(self, "Thành công", "Đã lưu ảnh đồ thị thành công!")

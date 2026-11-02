@@ -256,7 +256,7 @@ class GraphArea(QWidget):
         clicked_vertex = False
         clicked_vertex_name = None
         for i, (name, vpos) in enumerate(self.graph.vertices):
-            if (pos - vpos).manhattanLength() <= 20:
+            if (QPointF(pos) - QPointF(vpos)).manhattanLength() <= 20:
                 self.selected_vertex_idx = i
                 clicked_vertex = True
                 clicked_vertex_name = name
@@ -300,8 +300,10 @@ class GraphArea(QWidget):
 
         if mode == "Thêm cạnh":
             for name, vpos in self.graph.vertices:
-                if (pos - vpos).manhattanLength() <= 20:
+                if (QPointF(pos) - QPointF(vpos)).manhattanLength() <= 20:
                     if event.modifiers() & Qt.ShiftModifier:
+                        if name in self.selected_vertices:
+                            return
                         self.selected_vertices.append(name)
                         if len(self.selected_vertices) == 2:
                             self.push_undo()
@@ -312,7 +314,7 @@ class GraphArea(QWidget):
 
         if mode == "Xóa":
             for i, (name, vpos) in enumerate(self.graph.vertices):
-                if (pos - vpos).manhattanLength() <= 20:
+                if (QPointF(pos) - QPointF(vpos)).manhattanLength() <= 20:
                     self.push_undo()
                     self.graph.remove_vertex((name, vpos))
                     self.selected_vertices.clear()
@@ -324,7 +326,7 @@ class GraphArea(QWidget):
                 name1, name2 = edge
                 pos1 = next((p for n, p in self.graph.vertices if n == name1), None)
                 pos2 = next((p for n, p in self.graph.vertices if n == name2), None)
-                if pos1 and pos2:
+                if pos1 is not None and pos2 is not None:
                     control_point = self.graph.get_control_point(edge)
                     if control_point:
                         if self.is_point_near_curve(pos, pos1, pos2, control_point, 10):
@@ -394,14 +396,14 @@ class GraphArea(QWidget):
         name1, name2 = edge
         pos1 = next((p for n, p in self.graph.vertices if n == name1), None)
         pos2 = next((p for n, p in self.graph.vertices if n == name2), None)
-        if not pos1 or not pos2 or (pos1 == pos2):
+        if pos1 is None or pos2 is None or (pos1 == pos2):
             return
         control_point = self.graph.get_control_point(edge)
         if not control_point:
             return
 
         # Vector từ pos1 đến pos2
-        edge_vec = pos2 - pos1
+        edge_vec = QPointF(pos2) - QPointF(pos1)
         if edge_vec.x() == 0 and edge_vec.y() == 0:
             return
 
@@ -413,7 +415,7 @@ class GraphArea(QWidget):
         perp /= length
 
         # Trung điểm cạnh
-        mid = (pos1 + pos2) * 0.5
+        mid = (QPointF(pos1) + QPointF(pos2)) * 0.5
 
         # Khoảng cách từ control_point đến đường thẳng, theo hướng vuông góc
         dist = (control_point - mid).x() * perp.x() + (control_point - mid).y() * perp.y()
@@ -441,7 +443,7 @@ class GraphArea(QWidget):
             for name1, name2 in self.graph.edges:
                 pos1 = next((p for n, p in self.graph.vertices if n == name1), None)
                 pos2 = next((p for n, p in self.graph.vertices if n == name2), None)
-                if pos1 and pos2 and rect.contains(pos1.toPoint() if isinstance(pos1, QPointF) else pos1) \
+                if pos1 is not None and pos2 is not None and rect.contains(pos1.toPoint() if isinstance(pos1, QPointF) else pos1) \
                         and rect.contains(pos2.toPoint() if isinstance(pos2, QPointF) else pos2):
                     self.area_selected_edges.append((name1, name2))
             self.update()
@@ -478,12 +480,12 @@ class GraphArea(QWidget):
                 new_name = f"{name}_{i}"
                 i += 1
             base_names.add(new_name)
-            self.graph.vertices.append((new_name, pos + offset))
+            self.graph.vertices.append((new_name, QPointF(pos) + offset))
             new_names.append((name, new_name))
         old_to_new = dict(new_names)
-        for a, b in self.graph.edges:
+        for a, b in list(self.graph.edges):
             if a in old_to_new and b in old_to_new:
-                self.graph.edges.append((old_to_new[a], old_to_new[b]))
+                self.graph.add_edge((old_to_new[a], old_to_new[b]))
         self.update()
         self.parent().update_vertex_combo()
 

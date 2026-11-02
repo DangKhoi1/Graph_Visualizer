@@ -1,4 +1,3 @@
-from collections import deque
 import math
 import random
 from PyQt5.QtCore import QPoint, QPointF
@@ -18,6 +17,12 @@ class Graph:
 
     def add_edge(self, edge):
         name1, name2 = edge
+        names = {name for name, _ in self.vertices}
+        if name1 not in names or name2 not in names:
+            raise ValueError("Unknown edge endpoint")
+        if name1 == name2:
+            raise ValueError("Self-loops are not supported")
+        edge = (name1, name2)
         if edge not in self.edges and (name2, name1) not in self.edges:
             self.edges.append(edge)
             self.create_default_control_point(edge)
@@ -27,7 +32,7 @@ class Graph:
         pos1 = next((pos for n, pos in self.vertices if n == name1), None)
         pos2 = next((pos for n, pos in self.vertices if n == name2), None)
         
-        if pos1 and pos2:
+        if pos1 is not None and pos2 is not None:
             mid_x = (pos1.x() + pos2.x()) / 2
             mid_y = (pos1.y() + pos2.y()) / 2 - 30
             control_point = QPointF(mid_x, mid_y)
@@ -54,6 +59,8 @@ class Graph:
             self.edge_control_points.pop(reverse_edge, None)
 
     def remove_edge(self, edge):
+        if edge not in self.edges:
+            edge = (edge[1], edge[0])
         if edge in self.edges:
             self.edges.remove(edge)
             self.edge_control_points.pop(edge, None)
@@ -74,18 +81,20 @@ def connected_components(graph):
     visited = set()
     components = []
 
-    def dfs(u, component):
-        visited.add(u)
-        component.append(u)
-        for v in adjacency[u]:
-            if v not in visited:
-                dfs(v, component)
-
-    for v in vertices:
-        if v not in visited:
-            component = []
-            dfs(v, component)
-            components.append(component)
+    for vertex in vertices:
+        if vertex in visited:
+            continue
+        component = []
+        stack = [vertex]
+        visited.add(vertex)
+        while stack:
+            current = stack.pop()
+            component.append(current)
+            for neighbor in sorted(adjacency[current], reverse=True):
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    stack.append(neighbor)
+        components.append(component)
 
     return len(components), components
 
@@ -93,6 +102,10 @@ def connected_components(graph):
 def generate_random_graph(graph, width=600, height=500, num_vertices=None, edge_probability=0.5):
     if num_vertices is None:
         num_vertices = random.randint(3, 6)
+    if not isinstance(num_vertices, int) or num_vertices < 1:
+        raise ValueError("num_vertices must be a positive integer")
+    if not 0 <= edge_probability <= 1:
+        raise ValueError("edge_probability must be between 0 and 1")
     graph.clear()
     spacing = 360 / num_vertices
     center_x, center_y = width // 2, height // 2
@@ -158,28 +171,25 @@ def import_file(graph, file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    graph.clear()
-    
-    for v in data.get("vertices", []):
-        name = v["name"]
-        pos = QPoint(v["x"], v["y"])
-        graph.add_vertex((name, pos))
-    
-    for edge in data.get("edges", []):
-        if len(edge) == 2:
-            graph.add_edge(tuple(edge))
-    
+    if not isinstance(data, dict) or not isinstance(data.get("vertices"), list) or not isinstance(data.get("edges"), list):
+        raise ValueError("JSON must contain vertices and edges lists")
+    candidate = Graph()
+    for vertex in data["vertices"]:
+        name = vertex["name"]
+        if not isinstance(name, str) or not name.strip() or any(n == name for n, _ in candidate.vertices):
+            raise ValueError("Vertex names must be nonempty and unique")
+        candidate.add_vertex((name, QPointF(vertex["x"], vertex["y"])))
+    for edge in data["edges"]:
+        if not isinstance(edge, list) or len(edge) != 2:
+            raise ValueError("Each edge must contain two vertex names")
+        candidate.add_edge(tuple(edge))
     control_points = data.get("control_points", {})
-    for edge_key, point_data in control_points.items():
-        if "-" in edge_key:
-            parts = edge_key.split("-")
-            if len(parts) == 2:
-                edge = (parts[0], parts[1])
-                control_point = QPointF(point_data["x"], point_data["y"])
-                graph.set_control_point(edge, control_point)
-
-
-
-
-
-
+    for edge in candidate.edges:
+        for oriented in (edge, edge[::-1]):
+            point = control_points.get(f"{oriented[0]}-{oriented[1]}")
+            if point is not None:
+                candidate.set_control_point(edge, QPointF(point["x"], point["y"]))
+                break
+    graph.vertices = candidate.vertices
+    graph.edges = candidate.edges
+    graph.edge_control_points = candidate.edge_control_points

@@ -1,6 +1,5 @@
-from collections import deque
 import itertools
-from graph import connected_components
+from .graph import connected_components
 
 def check_dirac_condition(graph):
     vertices = [v[0] for v in graph.vertices]
@@ -49,7 +48,7 @@ def hamiltonian_cycle_with_steps(graph, start_vertex=None):
             'total_steps': 1
         }
     
-    if len(vertices) == 1:
+    if len(vertices) < 3:
         return {
             'success': False,
             'path': None,
@@ -212,7 +211,7 @@ def hamiltonian_cycle_branch_and_bound(graph, start_vertex=None):
             'total_steps': 1
         }
     
-    if len(vertices) == 1:
+    if len(vertices) < 3:
         return {
             'success': False,
             'path': None,
@@ -420,7 +419,7 @@ def hamiltonian_cycle_brute_force(graph, start_vertex=None):
             'total_steps': 1
         }
     
-    if len(vertices) == 1:
+    if len(vertices) < 3:
         return {
             'success': False,
             'path': None,
@@ -486,7 +485,7 @@ def hamiltonian_cycle_brute_force(graph, start_vertex=None):
         'action': f"Khởi tạo (Brute Force): Bắt đầu từ đỉnh {start_vertex}"
     })
     remaining_vertices = [v for v in vertices if v != start_vertex]
-    permutations = list(itertools.permutations(remaining_vertices))
+    permutations = itertools.permutations(remaining_vertices)
 
     step_count += 1
     steps.append({

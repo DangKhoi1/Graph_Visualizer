@@ -52,17 +52,24 @@ Project này là một ứng dụng desktop giúp người dùng:
 
 ```text
 graph-visualizer/
-├── requirements.txt
-├── Graph_Visualizer/
-│   ├── main.py
-│   ├── gui.py
-│   ├── graph.py
-│   ├── graph_area.py
-│   ├── graph_algorithms.py
-│   ├── style.css
-│   ├── README.md
-│   └── ...
-└── README.md (nếu có)
+??? pyproject.toml
+??? requirements.txt
+??? README.md
+??? .gitignore
+??? src/
+?   ??? graph_visualizer/
+?       ??? __init__.py
+?       ??? __main__.py
+?       ??? main.py
+?       ??? gui.py
+?       ??? graph.py
+?       ??? graph_area.py
+?       ??? graph_algorithms.py
+?       ??? assets/
+?           ??? style.qss
+?           ??? icon.jpeg
+??? tests/
+    ??? test_graph.py
 ```
 
 ## Yêu cầu hệ thống
@@ -92,7 +99,7 @@ source .venv/bin/activate
 ### 2. Cài đặt dependency
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -e .
 ```
 
 ## Chạy ứng dụng
@@ -100,14 +107,13 @@ pip install -r requirements.txt
 Từ thư mục gốc của dự án:
 
 ```bash
-cd Graph_Visualizer
-python main.py
+python -m graph_visualizer
 ```
 
 Hoặc nếu đang ở thư mục gốc, có thể chạy trực tiếp:
 
 ```bash
-python Graph_Visualizer/main.py
+graph-visualizer
 ```
 
 ## Hướng dẫn sử dụng
@@ -141,6 +147,10 @@ Chu trình Hamilton là một chu trình đi qua mỗi đỉnh của đồ thị
 - Ore: nếu mọi cặp đỉnh không kề có tổng bậc lớn hơn hoặc bằng n thì đồ thị chắc chắn có chu trình Hamilton.
 
 ## Ghi chú
+
+- Chạy kiểm thử từ thư mục gốc: `python -m unittest discover -s tests -v`.
+- Ứng dụng hỗ trợ đồ thị đơn vô hướng: không có cạnh khuyên hoặc cạnh song song; chu trình Hamilton cần ít nhất 3 đỉnh.
+- Các thuật toán Hamilton có độ phức tạp tăng nhanh theo số đỉnh. Việc ghi lại từng bước vẫn có thể tốn nhiều bộ nhớ và thời gian với đồ thị lớn.
 
 - Ứng dụng hiện tại chủ yếu hỗ trợ đồ thị vô hướng.
 - Dữ liệu đồ thị được lưu dưới dạng JSON.
